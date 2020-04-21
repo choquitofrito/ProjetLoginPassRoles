@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -39,6 +41,16 @@ class User implements UserInterface
      * @ORM\Column(type="string", length=255)
      */
     private $nom;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\GroupeMusique", mappedBy="user")
+     */
+    private $groupesGeres;
+
+    public function __construct()
+    {
+        $this->groupesGeres = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -126,6 +138,37 @@ class User implements UserInterface
     public function setNom(string $nom): self
     {
         $this->nom = $nom;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|GroupeMusique[]
+     */
+    public function getGroupesGeres(): Collection
+    {
+        return $this->groupesGeres;
+    }
+    // on a du corriger le nom de cette méthode, mais ce n'est pas indispensable
+    public function addGroupeGere(GroupeMusique $groupesGere): self
+    {
+        if (!$this->groupesGeres->contains($groupesGere)) {
+            $this->groupesGeres[] = $groupesGere;
+            $groupesGere->setUser($this);
+        }
+
+        return $this;
+    }
+    // on a du corriger le nom de cette méthode, mais ce n'est pas indispensable
+    public function removeGroupeGere(GroupeMusique $groupesGere): self
+    {
+        if ($this->groupesGeres->contains($groupesGere)) {
+            $this->groupesGeres->removeElement($groupesGere);
+            // set the owning side to null (unless already changed)
+            if ($groupesGere->getUser() === $this) {
+                $groupesGere->setUser(null);
+            }
+        }
 
         return $this;
     }
